@@ -7,7 +7,6 @@ import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
-import java.util.regex.Pattern;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -30,7 +29,6 @@ import co.edu.poli.parqueadero.modelo.Vehiculo;
 @Service
 public class SesionService {
 
-    private static final Pattern FORMATO_PLACA = Pattern.compile("^[A-Z0-9]{5,7}$");
     private static final BigDecimal MINUTOS_POR_HORA = BigDecimal.valueOf(60);
     private static final DateTimeFormatter FORMATO_FECHA = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
 
@@ -62,8 +60,8 @@ public class SesionService {
      */
     @Transactional(noRollbackFor = ReglaNegocioException.class)
     public SesionParqueadero registrarEntrada(String placaIngresada, Integer idCentro) {
-        String placa = normalizarPlaca(placaIngresada);
-        if (!FORMATO_PLACA.matcher(placa).matches()) {
+        String placa = ReglasPlaca.normalizar(placaIngresada);
+        if (!ReglasPlaca.esValida(placa)) {
             throw new ReglaNegocioException("La placa ingresada no es válida.");
         }
         CentroComercial centro = idCentro == null ? null : centroDAO.buscarPorId(idCentro);
@@ -101,7 +99,7 @@ public class SesionService {
         return sesion;
     }
 
-    @Transactional(readOnly = true)
+    @Transactional
     public ResumenSesion consultarSesion(Integer id) {
         SesionParqueadero sesion = id == null ? null : sesionDAO.buscarPorId(id);
         if (sesion == null) {
@@ -110,9 +108,9 @@ public class SesionService {
         return resumir(sesion);
     }
 
-    @Transactional(readOnly = true)
+    @Transactional
     public ResumenSesion consultarSesionAbiertaPorPlaca(String placaIngresada) {
-        String placa = normalizarPlaca(placaIngresada);
+        String placa = ReglasPlaca.normalizar(placaIngresada);
         SesionParqueadero sesion = sesionDAO.buscarAbiertaPorPlaca(placa);
         if (sesion == null) {
             throw new ReglaNegocioException("No hay una sesión abierta para la placa " + placa + ".");
@@ -125,9 +123,14 @@ public class SesionService {
         long minutos = Math.max(0, Duration.between(sesion.getFechaEntrada(), hasta).toMinutes());
         BigDecimal valorHora = sesion.getTarifa().getValorHora();
         BigDecimal gratuitas = sesion.getHorasGratuitas() != null ? sesion.getHorasGratuitas() : BigDecimal.ZERO;
-        BigDecimal costo = sesion.getMontoTotal() != null
-                ? sesion.getMontoTotal()
+        boolean abierta = SesionParqueadero.ESTADO_ABIERTA.equals(sesion.getEstado());
+        BigDecimal montoGuardado = sesion.getMontoTotal();
+        BigDecimal costo = !abierta && montoGuardado != null
+                ? montoGuardado
                 : calcularCosto(minutos, gratuitas, valorHora);
+        if (abierta || montoGuardado == null) {
+            sesion.setMontoTotal(costo);
+        }
         return new ResumenSesion(
                 sesion.getId(),
                 sesion.getVehiculo().getPlaca(),
@@ -155,10 +158,7 @@ public class SesionService {
 
     /** Quita espacios y guiones y pasa a mayúsculas: " abc-123 " queda "ABC123". */
     static String normalizarPlaca(String placa) {
-        if (placa == null) {
-            return "";
-        }
-        return placa.replaceAll("[\\s-]", "").toUpperCase();
+        return ReglasPlaca.normalizar(placa);
     }
 
     /**
