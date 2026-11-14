@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Registrar entrada</title>
+    <style>
+        body { font-family: Arial, sans-serif; background: #f4f6f8; margin: 0; }
+        main { max-width: 420px; margin: 40px auto; background: #fff; padding: 24px; border-radius: 8px; }
+        label { display: block; margin-top: 14px; font-weight: bold; }
+        input, select { width: 100%; padding: 8px; margin-top: 4px; box-sizing: border-box; }
+        button { margin-top: 18px; padding: 10px 16px; cursor: pointer; }
+        .error { background: #fdecea; color: #b71c1c; padding: 10px; border-radius: 4px; }
+        hr { margin: 28px 0; }
+    </style>
+</head>
+<body>
+<main>
+    <h1>Registrar entrada</h1>
+    <p class="error" th:if="${error}" th:text="${error}"></p>
+    <form th:action="@{/sesiones/entrada}" method="post">
+        <label for="placa">Placa del vehículo</label>
+        <input id="placa" name="placa" maxlength="10" required th:value="${placa}" placeholder="ABC123">
+        <label for="idCentro">Centro comercial</label>
+        <select id="idCentro" name="idCentro" required>
+            <option th:each="c : ${centros}" th:value="${c.id}" th:text="${c.nombre}"></option>
+        </select>
+        <button type="submit">Registrar entrada</button>
+    </form>
+
+    <hr>
+    <h2>Consultar mi sesión</h2>
+    <p class="error" th:if="${errorConsulta}" th:text="${errorConsulta}"></p>
+    <form th:action="@{/sesiones/consulta}" method="get">
+        <label for="placaConsulta">Placa del vehículo</label>
+        <input id="placaConsulta" name="placa" maxlength="10" required placeholder="ABC123">
+        <button type="submit">Ver tiempo y costo</button>
+    </form>
+</main>
+</body>
+</html>
