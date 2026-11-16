@@ -17,4 +17,6 @@ public interface SesionDAO extends DAO<SesionParqueadero> {
 
     /** Busca una sesión solo si pertenece al usuario indicado; null si no existe. */
     SesionParqueadero buscarPorIdYUsuario(Integer idSesion, Integer idUsuario);
+
+    SesionParqueadero buscarPorIdParaActualizar(Integer idSesion);
 }

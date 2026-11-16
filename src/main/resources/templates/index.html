@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Parqueadero</title>
+    <link rel="stylesheet" th:href="@{/css/app.css}">
+</head>
+<body>
+<header><nav><a th:href="@{/}">Parqueadero</a><a th:href="@{/sesiones/entrada}">Sesiones</a><a th:href="@{/usuarios/registro}">Crear cuenta</a><a th:href="@{/usuarios/login}">Ingresar</a><a th:href="@{/usuarios/perfil}">Mi perfil</a><a th:href="@{/usuarios/validaciones}">Mis beneficios</a><a th:href="@{/admin/tarifas}">Administración</a></nav></header>
+<main>
+    <h1>Tu parqueadero, más simple</h1>
+    <p>Registra la entrada, consulta el costo de tu sesión y aplica beneficios QR antes de pagar.</p>
+    <div class="grid">
+        <section class="card"><h2>¿Nuevo aquí?</h2><p>Crea una cuenta para gestionar tus datos y consultar tus beneficios.</p><a class="button" th:href="@{/usuarios/registro}">Crear cuenta</a></section>
+        <section class="card"><h2>Ya tienes una cuenta</h2><p>Inicia sesión para ver tu perfil, notificaciones y pagos.</p><a class="button" th:href="@{/usuarios/login}">Iniciar sesión</a></section>
+        <section class="card"><h2>Consultar parqueadero</h2><p>Registra o consulta una sesión por placa y centro comercial.</p><a class="button" th:href="@{/sesiones/entrada}">Ver sesiones</a></section>
+    </div>
+</main>
+<script th:src="@{/js/app.js}"></script>
+</body>
+</html>

@@ -1,0 +1,15 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Acceso restringido</title><link rel="stylesheet" th:href="@{/css/app.css}">
+</head>
+<body>
+<header><nav><a th:href="@{/}">Parqueadero</a><a th:href="@{/usuarios/perfil}">Mi perfil</a></nav></header>
+<main>
+    <h1>Acceso restringido</h1>
+    <p>Tu cuenta no tiene permisos para esta operación. Si necesitas administrar tarifas o beneficios, solicita acceso a un administrador.</p>
+    <div class="actions"><a class="button" th:href="@{/}">Volver al inicio</a><a th:href="@{/usuarios/perfil}">Ir a mi perfil</a></div>
+</main>
+</body>
+</html>

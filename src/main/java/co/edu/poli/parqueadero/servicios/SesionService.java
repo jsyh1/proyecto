@@ -37,15 +37,18 @@ public class SesionService {
     private final TarifaDAO tarifaDAO;
     private final CentroComercialDAO centroDAO;
     private final RegistroAccesoDAO accesoDAO;
+    private final NotificacionService notificacionService;
     private final Clock reloj;
 
     public SesionService(VehiculoDAO vehiculoDAO, SesionDAO sesionDAO, TarifaDAO tarifaDAO,
-            CentroComercialDAO centroDAO, RegistroAccesoDAO accesoDAO, Clock reloj) {
+            CentroComercialDAO centroDAO, RegistroAccesoDAO accesoDAO,
+            NotificacionService notificacionService, Clock reloj) {
         this.vehiculoDAO = vehiculoDAO;
         this.sesionDAO = sesionDAO;
         this.tarifaDAO = tarifaDAO;
         this.centroDAO = centroDAO;
         this.accesoDAO = accesoDAO;
+        this.notificacionService = notificacionService;
         this.reloj = reloj;
     }
 
@@ -96,7 +99,19 @@ public class SesionService {
         sesionDAO.crear(sesion);
 
         registrarAcceso(centro, placa, sesion, ahora, RegistroAcceso.RESULTADO_RECONOCIDO);
+        notificacionService.entradaRegistrada(sesion);
         return sesion;
+    }
+
+    @Transactional(noRollbackFor = ReglaNegocioException.class)
+    public SesionParqueadero registrarEntrada(String placaIngresada, Integer idCentro, String correoPropietario) {
+        String placa = ReglasPlaca.normalizar(placaIngresada);
+        Vehiculo vehiculo = vehiculoDAO.buscarPorPlaca(placa);
+        if (vehiculo == null || vehiculo.getUsuario() == null
+                || !vehiculo.getUsuario().getCorreo().equalsIgnoreCase(correoPropietario)) {
+            throw new ReglaNegocioException("La placa no está registrada para la cuenta autenticada.");
+        }
+        return registrarEntrada(placa, idCentro);
     }
 
     @Transactional
@@ -109,11 +124,32 @@ public class SesionService {
     }
 
     @Transactional
+    public ResumenSesion consultarSesion(Integer id, String correoPropietario) {
+        SesionParqueadero sesion = id == null ? null : sesionDAO.buscarPorId(id);
+        if (sesion == null || sesion.getVehiculo().getUsuario() == null
+                || !sesion.getVehiculo().getUsuario().getCorreo().equalsIgnoreCase(correoPropietario)) {
+            throw new ReglaNegocioException("La sesión solicitada no existe para el usuario autenticado.");
+        }
+        return resumir(sesion);
+    }
+
+    @Transactional
     public ResumenSesion consultarSesionAbiertaPorPlaca(String placaIngresada) {
         String placa = ReglasPlaca.normalizar(placaIngresada);
         SesionParqueadero sesion = sesionDAO.buscarAbiertaPorPlaca(placa);
         if (sesion == null) {
             throw new ReglaNegocioException("No hay una sesión abierta para la placa " + placa + ".");
+        }
+        return resumir(sesion);
+    }
+
+    @Transactional
+    public ResumenSesion consultarSesionAbiertaPorPlaca(String placaIngresada, String correoPropietario) {
+        String placa = ReglasPlaca.normalizar(placaIngresada);
+        SesionParqueadero sesion = sesionDAO.buscarAbiertaPorPlaca(placa);
+        if (sesion == null || sesion.getVehiculo().getUsuario() == null
+                || !sesion.getVehiculo().getUsuario().getCorreo().equalsIgnoreCase(correoPropietario)) {
+            throw new ReglaNegocioException("No existe una sesión abierta para ese vehículo.");
         }
         return resumir(sesion);
     }

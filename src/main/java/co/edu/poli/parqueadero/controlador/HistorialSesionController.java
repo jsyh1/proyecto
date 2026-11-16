@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.RestController;
 import co.edu.poli.parqueadero.servicios.DetalleHistorialSesionResponse;
 import co.edu.poli.parqueadero.servicios.HistorialSesionResponse;
 import co.edu.poli.parqueadero.servicios.HistorialSesionService;
+import org.springframework.security.core.Authentication;
 
 @RestController
 @RequestMapping("/usuarios/{idUsuario}/sesiones")
@@ -22,14 +23,17 @@ public class HistorialSesionController {
     }
 
     @GetMapping
-    public List<HistorialSesionResponse> listar(@PathVariable Integer idUsuario) {
-        return servicio.listar(idUsuario);
+    public List<HistorialSesionResponse> listar(
+            Authentication autenticacion,
+            @PathVariable Integer idUsuario) {
+        return servicio.listar(idUsuario, autenticacion.getName());
     }
 
     @GetMapping("/{idSesion}")
     public DetalleHistorialSesionResponse consultar(
+            Authentication autenticacion,
             @PathVariable Integer idUsuario,
             @PathVariable Integer idSesion) {
-        return servicio.consultar(idUsuario, idSesion);
+        return servicio.consultar(idUsuario, idSesion, autenticacion.getName());
     }
 }

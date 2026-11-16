@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Administrar beneficios</title><link rel="stylesheet" th:href="@{/css/app.css}"></head>
+<body>
+<header><nav><a th:href="@{/}">Parqueadero</a><a th:href="@{/admin/tarifas}">Tarifas</a></nav></header>
+<main>
+    <h1>Beneficios por establecimiento</h1>
+    <p>Configura horas gratis o descuentos; los códigos emitidos se consumen una sola vez.</p>
+    <p id="estado" class="notice" role="status"></p>
+    <form id="beneficio">
+        <input name="id" type="hidden">
+        <label>Centro comercial<select name="idCentro" id="centros" required></select></label>
+        <label>Nombre<input name="nombre" maxlength="80" required></label>
+        <label>Tipo<select name="tipo"><option value="HORAS_GRATIS">Horas gratis</option><option value="PORCENTAJE_DESCUENTO">Porcentaje de descuento</option><option value="VALOR_FIJO_DESCUENTO">Descuento fijo</option></select></label>
+        <label>Valor<input name="valor" type="number" min="0.01" step="0.01" required></label>
+        <label>Vigente desde<input name="fechaInicio" type="date" required></label>
+        <label>Vigente hasta (opcional)<input name="fechaFin" type="date"></label>
+        <label><span>Estado</span><select name="activo"><option value="true">Activo</option><option value="false">Inactivo</option></select></label>
+        <button type="submit">Guardar beneficio</button>
+    </form>
+    <form id="codigos">
+        <h2>Emitir códigos QR</h2>
+        <label>Beneficio<select name="idBeneficio" id="beneficios" required></select></label>
+        <label>Cantidad (máximo 100)<input name="cantidad" type="number" min="1" max="100" value="1" required></label>
+        <label>Vencimiento<input name="vencimiento" type="datetime-local" required></label>
+        <button type="submit">Generar códigos</button>
+    </form>
+    <pre id="codigos-emitidos" class="notice" aria-live="polite"></pre>
+    <div class="table-wrap"><table><thead><tr><th>Nombre</th><th>Tipo</th><th>Valor</th><th>Estado</th><th>Acción</th></tr></thead><tbody id="lista"></tbody></table></div>
+</main>
+<script th:src="@{/js/app.js}"></script>
+<script>
+const beneficioForm = document.getElementById("beneficio");
+const centroSelect = document.getElementById("centros");
+const beneficiosSelect = document.getElementById("beneficios");
+async function cargarCentros() {
+    const response = await App.api("/api/centros"); const data = await App.responseData(response);
+    if (!response.ok) throw new Error("No fue posible cargar los centros.");
+    for (const c of data) { const option = document.createElement("option"); option.value = c.id; option.textContent = c.nombre; centroSelect.append(option); }
+}
+async function cargarBeneficios() {
+    const response = await App.api(`/api/beneficios?idCentro=${encodeURIComponent(centroSelect.value)}`);
+    const data = await App.responseData(response);
+    if (!response.ok) throw new Error("No fue posible cargar los beneficios.");
+    const body = document.getElementById("lista"); body.replaceChildren(); beneficiosSelect.replaceChildren();
+    for (const b of data) {
+        const option = document.createElement("option"); option.value = b.id; option.textContent = b.nombre; beneficiosSelect.append(option);
+        const row = body.insertRow(); row.insertCell().textContent = b.nombre; row.insertCell().textContent = b.tipo;
+        row.insertCell().textContent = b.valor; row.insertCell().textContent = b.activo ? "Activo" : "Inactivo";
+        const button = document.createElement("button"); button.type = "button"; button.textContent = "Editar";
+        button.addEventListener("click", () => {
+            for (const [key, value] of Object.entries(b)) {
+                if (beneficioForm.elements.namedItem(key)) beneficioForm.elements.namedItem(key).value = value ?? "";
+            }
+        });
+        row.insertCell().append(button);
+    }
+}
+centroSelect.addEventListener("change", cargarBeneficios);
+beneficioForm.addEventListener("submit", async event => {
+    event.preventDefault();
+    const id = beneficioForm.elements.namedItem("id").value;
+    const data = Object.fromEntries(["idCentro", "nombre", "tipo", "valor", "fechaInicio", "fechaFin", "activo"]
+        .map(key => [key, beneficioForm.elements.namedItem(key).value || null]));
+    data.idCentro = Number(data.idCentro); data.valor = Number(data.valor); data.activo = data.activo === "true";
+    const response = await App.api(id ? `/api/admin/beneficios/${id}` : "/api/admin/beneficios", {
+        method: id ? "PUT" : "POST", body: JSON.stringify(data)
+    });
+    const result = await App.responseData(response);
+    if (!response.ok) { App.show("estado", result.detail || "No fue posible guardar el beneficio.", true); return; }
+    App.show("estado", "Beneficio guardado correctamente."); beneficioForm.reset(); await cargarBeneficios();
+});
+document.getElementById("codigos").addEventListener("submit", async event => {
+    event.preventDefault();
+    const form = event.currentTarget;
+    const id = form.elements.namedItem("idBeneficio").value;
+    const response = await App.api(`/api/admin/beneficios/${id}/codigos`, {
+        method: "POST",
+        body: JSON.stringify({ cantidad: Number(form.elements.namedItem("cantidad").value), vencimiento: form.elements.namedItem("vencimiento").value })
+    });
+    const data = await App.responseData(response);
+    if (!response.ok) { App.show("estado", data.detail || "No fue posible emitir los códigos.", true); return; }
+    document.getElementById("codigos-emitidos").textContent = data.join("\n");
+    App.show("estado", "Códigos emitidos. Compártelos con los establecimientos; no vuelvas a publicar sus códigos.");
+});
+cargarCentros().then(cargarBeneficios).catch(error => App.show("estado", error.message, true));
+</script>
+</body>
+</html>

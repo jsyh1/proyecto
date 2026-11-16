@@ -17,6 +17,7 @@ import java.time.LocalDateTime;
 public class SesionParqueadero {
 
     public static final String ESTADO_ABIERTA = "ABIERTA";
+    public static final String ESTADO_CERRADA = "CERRADA";
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

@@ -69,6 +69,7 @@ class ConsultaCostoSesionTest {
                 mock(TarifaDAO.class),
                 mock(CentroComercialDAO.class),
                 mock(RegistroAccesoDAO.class),
+                mock(NotificacionService.class),
                 Clock.fixed(Instant.parse(instante), ZONA));
     }
 

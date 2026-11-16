@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+import org.springframework.security.core.Authentication;
 
 @Controller
 @RequestMapping("/sesiones")
@@ -30,9 +31,13 @@ public class SesionController {
     }
 
     @PostMapping("/entrada")
-    public String registrarEntrada(@RequestParam String placa, @RequestParam Integer idCentro, Model modelo) {
+    public String registrarEntrada(
+            @RequestParam String placa,
+            @RequestParam Integer idCentro,
+            Authentication autenticacion,
+            Model modelo) {
         try {
-            SesionParqueadero sesion = servicio.registrarEntrada(placa, idCentro);
+            SesionParqueadero sesion = servicio.registrarEntrada(placa, idCentro, autenticacion.getName());
             return "redirect:/sesiones/" + sesion.getId();
         } catch (ReglaNegocioException e) {
             modelo.addAttribute("error", e.getMessage());
@@ -43,9 +48,12 @@ public class SesionController {
     }
 
     @GetMapping("/consulta")
-    public String consultarPorPlaca(@RequestParam String placa, RedirectAttributes atributos) {
+    public String consultarPorPlaca(
+            @RequestParam String placa,
+            Authentication autenticacion,
+            RedirectAttributes atributos) {
         try {
-            ResumenSesion resumen = servicio.consultarSesionAbiertaPorPlaca(placa);
+            ResumenSesion resumen = servicio.consultarSesionAbiertaPorPlaca(placa, autenticacion.getName());
             return "redirect:/sesiones/" + resumen.id();
         } catch (ReglaNegocioException e) {
             atributos.addFlashAttribute("errorConsulta", e.getMessage());
@@ -54,9 +62,13 @@ public class SesionController {
     }
 
     @GetMapping("/{id}")
-    public String detalle(@PathVariable Integer id, Model modelo, RedirectAttributes atributos) {
+    public String detalle(
+            @PathVariable Integer id,
+            Authentication autenticacion,
+            Model modelo,
+            RedirectAttributes atributos) {
         try {
-            modelo.addAttribute("resumen", servicio.consultarSesion(id));
+            modelo.addAttribute("resumen", servicio.consultarSesion(id, autenticacion.getName()));
             return "sesiones/detalle";
         } catch (ReglaNegocioException e) {
             atributos.addFlashAttribute("errorConsulta", e.getMessage());

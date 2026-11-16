@@ -4,20 +4,15 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Registrar entrada</title>
-    <style>
-        body { font-family: Arial, sans-serif; background: #f4f6f8; margin: 0; }
-        main { max-width: 420px; margin: 40px auto; background: #fff; padding: 24px; border-radius: 8px; }
-        label { display: block; margin-top: 14px; font-weight: bold; }
-        input, select { width: 100%; padding: 8px; margin-top: 4px; box-sizing: border-box; }
-        button { margin-top: 18px; padding: 10px 16px; cursor: pointer; }
-        .error { background: #fdecea; color: #b71c1c; padding: 10px; border-radius: 4px; }
-        hr { margin: 28px 0; }
-    </style>
+    <link rel="stylesheet" th:href="@{/css/app.css}">
 </head>
 <body>
+<header><nav><a th:href="@{/}">Parqueadero</a><a th:href="@{/usuarios/perfil}">Mi perfil</a><a th:href="@{/usuarios/validaciones}">Mis beneficios</a></nav></header>
 <main>
     <h1>Registrar entrada</h1>
-    <p class="error" th:if="${error}" th:text="${error}"></p>
+    <p>Usa la cuenta propietaria del vehículo para registrar o consultar una sesión.</p>
+    <p><a th:href="@{/usuarios/login}">Iniciar sesión</a> · <a th:href="@{/usuarios/registro}">Crear cuenta</a></p>
+    <p class="notice error" th:if="${error}" th:text="${error}"></p>
     <form th:action="@{/sesiones/entrada}" method="post">
         <label for="placa">Placa del vehículo</label>
         <input id="placa" name="placa" maxlength="10" required th:value="${placa}" placeholder="ABC123">
@@ -30,7 +25,7 @@
 
     <hr>
     <h2>Consultar mi sesión</h2>
-    <p class="error" th:if="${errorConsulta}" th:text="${errorConsulta}"></p>
+    <p class="notice error" th:if="${errorConsulta}" th:text="${errorConsulta}"></p>
     <form th:action="@{/sesiones/consulta}" method="get">
         <label for="placaConsulta">Placa del vehículo</label>
         <input id="placaConsulta" name="placa" maxlength="10" required placeholder="ABC123">

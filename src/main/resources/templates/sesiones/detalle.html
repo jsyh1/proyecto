@@ -5,20 +5,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta http-equiv="refresh" content="30" th:if="${resumen.estado == 'ABIERTA'}">
     <title>Mi sesión de parqueadero</title>
-    <style>
-        body { font-family: Arial, sans-serif; background: #f4f6f8; margin: 0; }
-        main { max-width: 420px; margin: 40px auto; background: #fff; padding: 24px; border-radius: 8px; }
-        dl { display: grid; grid-template-columns: 1fr 1fr; gap: 8px 12px; }
-        dt { font-weight: bold; }
-        dd { margin: 0; }
-        .costo { font-size: 1.6em; font-weight: bold; margin: 16px 0 4px; }
-        .nota { color: #555; font-size: 0.9em; }
-    </style>
+    <link rel="stylesheet" th:href="@{/css/app.css}">
 </head>
 <body>
+<header><nav><a th:href="@{/}">Parqueadero</a><a th:href="@{/usuarios/perfil}">Mi perfil</a><a th:href="@{/usuarios/validaciones}">Mis beneficios</a></nav></header>
 <main>
     <h1>Mi sesión de parqueadero</h1>
-    <dl>
+    <dl class="summary">
         <dt>Placa</dt><dd th:text="${resumen.placa}"></dd>
         <dt>Centro comercial</dt><dd th:text="${resumen.centro}"></dd>
         <dt>Hora de entrada</dt><dd th:text="${resumen.fechaEntrada}"></dd>
@@ -27,9 +20,131 @@
         <dd>$ <span th:text="${#numbers.formatDecimal(resumen.valorHora, 1, 'POINT', 0, 'COMMA')}"></span></dd>
         <dt>Estado</dt><dd th:text="${resumen.estado}"></dd>
     </dl>
-    <p class="costo">$ <span th:text="${#numbers.formatDecimal(resumen.costoActual, 1, 'POINT', 0, 'COMMA')}"></span></p>
-    <p class="nota">Costo acumulado a la fecha. Se actualiza cada 30 segundos mientras la sesión esté abierta.</p>
+    <p class="price">$ <span th:text="${#numbers.formatDecimal(resumen.costoActual, 1, 'POINT', 0, 'COMMA')}"></span></p>
+    <p class="muted">Costo acumulado a la fecha. Se actualiza cada 30 segundos mientras la sesión esté abierta.</p>
+    <section th:if="${resumen.estado == 'ABIERTA'}">
+        <h2>Aplicar beneficio QR</h2>
+        <p>Escanea el código del establecimiento o escríbelo manualmente.</p>
+        <div class="actions">
+            <button type="button" id="iniciar-escaneo">Usar cámara</button>
+            <button type="button" class="secondary" id="detener-escaneo" disabled>Detener cámara</button>
+        </div>
+        <video id="camara" muted playsinline hidden></video>
+        <form id="validar-qr">
+            <label for="codigo-qr">Código del beneficio</label>
+            <input id="codigo-qr" name="codigo" autocomplete="off" required>
+            <button type="submit">Validar código</button>
+        </form>
+        <p id="resultado-qr" class="notice" role="status"></p>
+
+        <h2>Resumen y pago</h2>
+        <p id="estado-cobro" class="notice" role="status">Inicia sesión para consultar el valor final.</p>
+        <dl id="resumen-cobro" class="summary" hidden>
+            <dt>Costo inicial</dt><dd id="costo-inicial"></dd>
+            <dt>Beneficios aplicados</dt><dd id="beneficios"></dd>
+            <dt>Descuento total</dt><dd id="descuento"></dd>
+            <dt>Valor final</dt><dd id="valor-final" class="price"></dd>
+        </dl>
+        <form id="pagar">
+            <label for="metodo-pago">Método de pago (modo de prueba)</label>
+            <select id="metodo-pago" name="metodo">
+                <option value="SIMULADO_APROBADO">Pago de prueba aprobado</option>
+                <option value="SIMULADO_RECHAZADO">Pago de prueba rechazado</option>
+            </select>
+            <button type="submit">Procesar pago de prueba y cerrar sesión</button>
+        </form>
+        <p class="muted">Este modo no cobra dinero ni guarda datos de tarjetas.</p>
+    </section>
     <p><a th:href="@{/sesiones/entrada}">Volver</a></p>
 </main>
+<script th:src="@{/js/app.js}"></script>
+<script th:inline="javascript">
+const idSesion = /*[[${resumen.id}]]*/ 0;
+const camara = document.getElementById("camara");
+const iniciarCamara = document.getElementById("iniciar-escaneo");
+const detenerCamara = document.getElementById("detener-escaneo");
+let flujoCamara;
+let detector;
+let intervaloEscaneo;
+
+async function validarCodigo(codigo) {
+    try {
+        const response = await App.api(`/api/sesiones/${idSesion}/beneficios/validar`, {
+            method: "POST", body: JSON.stringify({ codigo })
+        });
+        const data = await App.responseData(response);
+        if (!response.ok) throw new Error(data.detail || "No fue posible validar el código.");
+        App.show("resultado-qr", data.mensaje, !data.aprobada);
+        if (data.aprobada) await cargarCobro();
+    } catch (error) { App.show("resultado-qr", error.message, true); }
+}
+
+document.getElementById("validar-qr")?.addEventListener("submit", async event => {
+    event.preventDefault();
+    await validarCodigo(event.currentTarget.elements.namedItem("codigo").value);
+});
+
+iniciarCamara?.addEventListener("click", async () => {
+    try {
+        if (!("BarcodeDetector" in window)) throw new Error("Este navegador no permite escanear QR con cámara. Escribe el código manualmente.");
+        flujoCamara = await navigator.mediaDevices.getUserMedia({ video: { facingMode: { ideal: "environment" } } });
+        camara.srcObject = flujoCamara;
+        camara.hidden = false;
+        await camara.play();
+        detector = new BarcodeDetector({ formats: ["qr_code"] });
+        iniciarCamara.disabled = true; detenerCamara.disabled = false;
+        intervaloEscaneo = window.setInterval(async () => {
+            try {
+                const codigos = await detector.detect(camara);
+                if (codigos.length) {
+                    document.getElementById("codigo-qr").value = codigos[0].rawValue;
+                    detenerCamara.click();
+                    await validarCodigo(codigos[0].rawValue);
+                }
+            } catch { App.show("resultado-qr", "No se pudo leer el código. Intenta de nuevo o escríbelo manualmente.", true); }
+        }, 500);
+    } catch (error) { App.show("resultado-qr", error.message || "No se pudo abrir la cámara.", true); }
+});
+
+detenerCamara?.addEventListener("click", () => {
+    window.clearInterval(intervaloEscaneo);
+    if (flujoCamara) flujoCamara.getTracks().forEach(track => track.stop());
+    camara.srcObject = null; camara.hidden = true;
+    iniciarCamara.disabled = false; detenerCamara.disabled = true;
+});
+
+async function cargarCobro() {
+    try {
+        const response = await App.api(`/api/sesiones/${idSesion}/pago`);
+        const data = await App.responseData(response);
+        if (!response.ok) throw new Error("Inicia sesión para ver el detalle de cobro.");
+        document.getElementById("costo-inicial").textContent = `$ ${data.costoInicial}`;
+        document.getElementById("beneficios").textContent = data.beneficiosAplicados.join(", ") || "Ninguno";
+        document.getElementById("descuento").textContent = `$ ${data.descuentoBeneficios}`;
+        document.getElementById("valor-final").textContent = `$ ${data.valorFinal}`;
+        document.getElementById("resumen-cobro").hidden = false;
+        App.show("estado-cobro", "");
+    } catch (error) { App.show("estado-cobro", error.message, true); }
+}
+
+document.getElementById("pagar")?.addEventListener("submit", async event => {
+    event.preventDefault();
+    const boton = event.currentTarget.querySelector("button");
+    boton.disabled = true;
+    try {
+        const metodo = event.currentTarget.elements.namedItem("metodo").value;
+        const response = await App.api(`/api/sesiones/${idSesion}/pagos`, {
+            method: "POST", body: JSON.stringify({ metodo })
+        });
+        const data = await App.responseData(response);
+        if (!response.ok) throw new Error(data.detail || "No fue posible procesar el pago.");
+        App.show("estado-cobro", data.mensaje, !data.aprobado);
+        if (data.aprobado) window.setTimeout(() => window.location.reload(), 1200);
+    } catch (error) { App.show("estado-cobro", error.message, true); }
+    finally { boton.disabled = false; }
+});
+
+if (document.getElementById("resumen-cobro")) cargarCobro();
+</script>
 </body>
 </html>

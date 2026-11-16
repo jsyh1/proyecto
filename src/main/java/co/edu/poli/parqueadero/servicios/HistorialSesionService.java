@@ -30,6 +30,12 @@ public class HistorialSesionService {
     }
 
     @Transactional(readOnly = true)
+    public List<HistorialSesionResponse> listar(Integer idUsuario, String correoActual) {
+        validarPropietario(idUsuario, correoActual);
+        return listar(idUsuario);
+    }
+
+    @Transactional(readOnly = true)
     public DetalleHistorialSesionResponse consultar(Integer idUsuario, Integer idSesion) {
         validarUsuario(idUsuario);
         var sesion = sesionDAO.buscarPorIdYUsuario(idSesion, idUsuario);
@@ -40,9 +46,23 @@ public class HistorialSesionService {
         return DetalleHistorialSesionResponse.desde(sesion);
     }
 
+    @Transactional(readOnly = true)
+    public DetalleHistorialSesionResponse consultar(Integer idUsuario, Integer idSesion, String correoActual) {
+        validarPropietario(idUsuario, correoActual);
+        return consultar(idUsuario, idSesion);
+    }
+
     private void validarUsuario(Integer idUsuario) {
         if (idUsuario == null || usuarioDAO.buscarPorId(idUsuario) == null) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "El usuario solicitado no existe.");
+        }
+    }
+
+    private void validarPropietario(Integer idUsuario, String correoActual) {
+        var usuario = usuarioDAO.buscarPorCorreo(correoActual);
+        if (usuario == null || !usuario.getId().equals(idUsuario)) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND,
+                    "La información solicitada no existe para el usuario autenticado.");
         }
     }
 }

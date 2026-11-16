@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Mis beneficios</title><link rel="stylesheet" th:href="@{/css/app.css}"></head>
+<body>
+<header><nav><a th:href="@{/}">Parqueadero</a><a th:href="@{/usuarios/perfil}">Mi perfil</a><a th:href="@{/sesiones/entrada}">Sesiones</a></nav></header>
+<main>
+    <h1>Mis validaciones de beneficios</h1>
+    <p>Consulta el establecimiento, la fecha y el resultado de cada intento.</p>
+    <p id="estado" class="notice" role="status">Cargando historial…</p>
+    <ul id="historial" class="list"></ul>
+</main>
+<script th:src="@{/js/app.js}"></script>
+<script>
+window.addEventListener("DOMContentLoaded", async () => {
+    try {
+        const response = await App.api("/api/validaciones");
+        const data = await App.responseData(response);
+        if (!response.ok) throw new Error("Inicia sesión para consultar tus validaciones.");
+        const list = document.getElementById("historial");
+        list.replaceChildren();
+        for (const row of data) {
+            const item = document.createElement("li");
+            item.textContent = `${row.fecha} — ${row.centro} — ${row.beneficio || "Código no reconocido"} — ${row.resultado}: ${row.motivo}`;
+            list.append(item);
+        }
+        App.show("estado", data.length ? "" : "Aún no tienes validaciones.");
+    } catch (error) { App.show("estado", error.message, true); }
+});
+</script>
+</body>
+</html>

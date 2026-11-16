@@ -3,6 +3,7 @@ package co.edu.poli.parqueadero.dao;
 import java.util.List;
 
 import co.edu.poli.parqueadero.modelo.SesionParqueadero;
+import jakarta.persistence.LockModeType;
 import org.springframework.stereotype.Repository;
 
 @Repository
@@ -57,6 +58,20 @@ public class SesionDAOImplementado extends DAOJpa<SesionParqueadero> implements 
                 SesionParqueadero.class)
                 .setParameter("idSesion", idSesion)
                 .setParameter("idUsuario", idUsuario)
+                .getResultList());
+    }
+
+    @Override
+    public SesionParqueadero buscarPorIdParaActualizar(Integer idSesion) {
+        return primero(em.createQuery(
+                "select s from SesionParqueadero s "
+                        + "join fetch s.vehiculo v "
+                        + "join fetch s.centro "
+                        + "join fetch s.tarifa "
+                        + "where s.id = :idSesion",
+                SesionParqueadero.class)
+                .setParameter("idSesion", idSesion)
+                .setLockMode(LockModeType.PESSIMISTIC_WRITE)
                 .getResultList());
     }
 }

@@ -9,6 +9,7 @@ import co.edu.poli.parqueadero.dao.UsuarioDAO;
 import co.edu.poli.parqueadero.dao.VehiculoDAO;
 import co.edu.poli.parqueadero.modelo.Usuario;
 import co.edu.poli.parqueadero.modelo.Vehiculo;
+import java.util.List;
 
 @Service
 public class VehiculoService {
@@ -27,6 +28,7 @@ public class VehiculoService {
         if (!ReglasPlaca.esValida(placa)) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "La placa ingresada no es válida.");
         }
+
         if (vehiculoDAO.buscarPorPlaca(placa) != null) {
             throw new ResponseStatusException(HttpStatus.CONFLICT,
                     "La placa " + placa + " ya está registrada.");
@@ -45,5 +47,10 @@ public class VehiculoService {
         vehiculo.setColor(color);
         vehiculoDAO.crear(vehiculo);
         return vehiculo;
+    }
+
+    @Transactional(readOnly = true)
+    public List<Vehiculo> listarPorUsuario(Integer idUsuario) {
+        return vehiculoDAO.listarPorUsuario(idUsuario);
     }
 }
