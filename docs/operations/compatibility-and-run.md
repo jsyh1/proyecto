@@ -17,30 +17,45 @@
 1. Instalar JDK 21 y confirmar `java -version`.
 2. Instalar e iniciar una instancia MySQL compatible.
 3. Crear la base `parqueadero` y ejecutar
-   `database/01_esquema_entrada.sql` desde la raíz del repositorio con una cuenta
+   `backend/database/01_esquema_entrada.sql` desde la raíz del repositorio con una cuenta
    administrativa. No almacenar credenciales en el repositorio ni incluirlas en
    argumentos de comandos.
-4. Proporcionar estas variables al proceso de la aplicación mediante el
-   administrador de secretos del entorno:
-   - `SPRING_DATASOURCE_URL`, por ejemplo `jdbc:mysql://<host>:3306/parqueadero`.
-   - `SPRING_DATASOURCE_USERNAME`.
-   - `SPRING_DATASOURCE_PASSWORD`.
-5. Desde PowerShell, ejecutar la validación y luego iniciar la aplicación:
+4. Completar las variables `SPRING_DATASOURCE_URL`,
+   `SPRING_DATASOURCE_USERNAME` y `SPRING_DATASOURCE_PASSWORD` en `.env` para
+   desarrollo local. La URL inicial apunta a `localhost:3306/parqueadero`.
+   Spring Boot carga este archivo automáticamente. Para otros entornos, usar el
+   administrador de secretos y variables de entorno en lugar de guardar secretos
+   en archivos.
+5. Desde PowerShell, ejecutar la validación y luego iniciar el backend:
 
    ```powershell
+   cd backend
    .\mvnw.cmd clean verify
    .\mvnw.cmd spring-boot:run
    ```
 
-Las variables de conexión no tienen valores predeterminados en
-`application.properties`. Si falta una, Spring informa el nombre de la variable
-no resuelta durante el inicio; no se imprime su valor ni una contraseña. No se
-debe reemplazar esta configuración con credenciales dentro del código.
+`.env` está excluido de Git. No guardar credenciales reales en el repositorio ni
+reemplazar esta configuración con secretos dentro del código.
 
-Las pruebas configuran H2 en `src/test/resources/application.properties`; esto
-permite validar el contexto y los casos automatizados sin una instancia MySQL.
-Esa configuración existe solo en el classpath de pruebas y no se usa al ejecutar
-la aplicación.
+## Cuentas y roles
+
+Registrar una cuenta mediante `POST /usuarios/registro`; todas las cuentas nuevas
+reciben rol `USER` y una contraseña BCrypt. Las páginas usan `/login`. Las API
+REST reciben autenticación HTTP Basic con el correo y la contraseña.
+
+Para habilitar administración, crear primero una cuenta y asignar `ADMIN` con una
+cuenta de base de datos autorizada:
+
+```sql
+UPDATE USUARIO SET rol = 'ADMIN' WHERE correo = '<correo-de-la-cuenta>';
+```
+
+La migración de `database/01_esquema_entrada.sql` conserva los usuarios existentes
+y les asigna `USER`. No hay una contraseña ni una cuenta `ADMIN` predeterminada.
+
+Las pruebas configuran H2 mediante propiedades de test, lo que permite validar el
+contexto y los casos automatizados sin una instancia MySQL. Esa configuración
+existe solo durante las pruebas y no se usa al ejecutar la aplicación.
 
 ## Estado de validación
 

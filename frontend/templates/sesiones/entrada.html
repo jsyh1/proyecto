@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Registrar entrada</title>
+    <link rel="stylesheet" th:href="@{/css/app.css}">
+</head>
+<body>
+<header class="app-header">
+    <div class="header-inner">
+        <a class="brand" th:href="@{/sesiones/entrada}">Parqueadero</a>
+        <nav class="header-nav" aria-label="Navegación principal">
+            <a th:href="@{/mis-vehiculos}">Registrar vehículo</a>
+            <a th:if="${esAdmin}" th:href="@{/administracion/centros-comerciales}">Administración</a>
+        </nav>
+    </div>
+</header>
+<main class="page-shell">
+    <div class="page-heading">
+        <p class="eyebrow">Control de acceso</p>
+        <h1>Registrar entrada</h1>
+        <p>Ingresa la placa del vehículo y selecciona el centro comercial.</p>
+    </div>
+    <p class="notice notice--error" role="alert" th:if="${error}" th:text="${error}"></p>
+    <p class="notice notice--info" role="status" th:if="${mensaje}" th:text="${mensaje}"></p>
+    <p class="notice notice--info" th:if="${#lists.isEmpty(centros)}">No hay centros activos disponibles. Pide a un administrador que registre un centro y su tarifa.</p>
+    <div class="content-grid">
+        <section class="panel">
+            <h2>Nueva entrada</h2>
+            <p class="panel-intro">La placa debe pertenecer a un vehículo registrado.</p>
+            <p><a th:href="@{/mis-vehiculos}">¿Aún no registraste tu vehículo? Regístralo aquí.</a></p>
+            <form class="stack-form" th:action="@{/sesiones/entrada}" method="post">
+                <div class="field">
+                    <label for="placa">Placa del vehículo</label>
+                    <input id="placa" name="placa" maxlength="10" required th:value="${placa}" placeholder="ABC123" autocomplete="off">
+                </div>
+                <div class="field">
+                    <label for="idCentro">Centro comercial</label>
+                    <select id="idCentro" name="idCentro" required th:disabled="${#lists.isEmpty(centros)}">
+                        <option value="" selected disabled>Selecciona un centro</option>
+                        <option th:each="c : ${centros}" th:value="${c.id}" th:text="${c.nombre}"></option>
+                    </select>
+                </div>
+                <button class="button" type="submit" th:disabled="${#lists.isEmpty(centros)}">Registrar entrada</button>
+            </form>
+        </section>
+
+        <section class="panel">
+            <h2>Consultar una sesión</h2>
+            <p class="panel-intro">Revisa el tiempo transcurrido y el valor pendiente de un vehículo.</p>
+            <p class="notice notice--error" role="alert" th:if="${errorConsulta}" th:text="${errorConsulta}"></p>
+            <form class="stack-form" th:action="@{/sesiones/consulta}" method="get">
+                <div class="field">
+                    <label for="placaConsulta">Placa del vehículo</label>
+                    <input id="placaConsulta" name="placa" maxlength="10" required placeholder="ABC123" autocomplete="off">
+                </div>
+                <button class="button button--secondary" type="submit">Ver tiempo y costo</button>
+            </form>
+        </section>
+    </div>
+</main>
+</body>
+</html>

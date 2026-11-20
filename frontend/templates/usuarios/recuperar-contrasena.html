@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Recuperar contraseña</title>
+    <link rel="stylesheet" th:href="@{/css/app.css}">
+</head>
+<body>
+<main class="page-shell page-shell--narrow">
+    <section class="auth-card">
+        <a class="brand" th:href="@{/login}">Parqueadero</a>
+        <p class="eyebrow">Acceso a tu cuenta</p>
+        <h1>Recuperar contraseña</h1>
+        <p class="subtitle">Ingresa el correo asociado a tu cuenta. Si existe, recibirás un enlace de recuperación.</p>
+        <p class="notice notice--success" role="status" th:if="${mensaje}" th:text="${mensaje}"></p>
+        <p class="notice notice--error" role="alert" th:if="${error}" th:text="${error}"></p>
+        <form class="stack-form" th:action="@{/recuperar-contrasena}" th:object="${solicitud}" method="post">
+            <div class="field">
+                <label for="correo">Correo electrónico</label>
+                <input id="correo" type="email" th:field="*{correo}" maxlength="100" autocomplete="email" required>
+            </div>
+            <button class="button" type="submit">Enviar instrucciones</button>
+        </form>
+        <p class="auth-links"><a th:href="@{/login}">Volver al inicio de sesión</a></p>
+    </section>
+</main>
+</body>
+</html>

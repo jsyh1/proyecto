@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Restablecer contraseña</title>
+    <link rel="stylesheet" th:href="@{/css/app.css}">
+</head>
+<body>
+<main class="page-shell page-shell--narrow">
+    <section class="auth-card">
+        <a class="brand" th:href="@{/login}">Parqueadero</a>
+        <p class="eyebrow">Seguridad de la cuenta</p>
+        <h1>Restablecer contraseña</h1>
+        <p class="notice notice--success" role="status" th:if="${exito}" th:text="${exito}"></p>
+        <p class="notice notice--error" role="alert" th:if="${error}" th:text="${error}"></p>
+        <form class="stack-form" th:unless="${exito}" th:action="@{/restablecer-contrasena}" th:object="${restablecer}" method="post">
+            <input type="hidden" th:field="*{token}">
+            <div class="field">
+                <label for="nuevaContrasena">Nueva contraseña</label>
+                <input id="nuevaContrasena" type="password" th:field="*{nuevaContrasena}"
+                       minlength="8" maxlength="72" autocomplete="new-password" required>
+            </div>
+            <div class="field">
+                <label for="confirmacion">Confirma la contraseña</label>
+                <input id="confirmacion" type="password" th:field="*{confirmacion}"
+                       minlength="8" maxlength="72" autocomplete="new-password" required>
+            </div>
+            <button class="button" type="submit">Cambiar contraseña</button>
+        </form>
+        <p class="auth-links"><a th:href="@{/login}">Ir al inicio de sesión</a></p>
+    </section>
+</main>
+</body>
+</html>

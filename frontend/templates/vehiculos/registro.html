@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Registrar vehículo</title>
+    <link rel="stylesheet" th:href="@{/css/app.css}">
+</head>
+<body>
+<header class="app-header">
+    <div class="header-inner">
+        <a class="brand" th:href="@{/sesiones/entrada}">Parqueadero</a>
+        <nav class="header-nav" aria-label="Navegación principal">
+            <a th:href="@{/sesiones/entrada}">Registrar entrada</a>
+        </nav>
+    </div>
+</header>
+<main class="page-shell page-shell--narrow">
+    <div class="page-heading">
+        <p class="eyebrow">Mis vehículos</p>
+        <h1>Registrar vehículo</h1>
+        <p>Registra el vehículo a tu cuenta antes de iniciar una sesión de parqueadero.</p>
+    </div>
+    <p class="notice notice--error" role="alert" th:if="${error}" th:text="${error}"></p>
+    <section class="panel">
+        <form class="stack-form" th:action="@{/mis-vehiculos}" method="post">
+            <div class="field">
+                <label for="placa">Placa</label>
+                <input id="placa" name="placa" maxlength="10" required autocomplete="off" placeholder="RKW898" th:value="${placa}">
+            </div>
+            <div class="field">
+                <label for="marca">Marca (opcional)</label>
+                <input id="marca" name="marca" maxlength="30" th:value="${marca}" placeholder="Toyota">
+            </div>
+            <div class="field">
+                <label for="modelo">Modelo (opcional)</label>
+                <input id="modelo" name="modelo" maxlength="30" th:value="${modelo}" placeholder="Corolla">
+            </div>
+            <div class="field">
+                <label for="color">Color (opcional)</label>
+                <input id="color" name="color" maxlength="20" th:value="${color}" placeholder="Gris">
+            </div>
+            <button class="button" type="submit">Guardar vehículo</button>
+            <a th:href="@{/sesiones/entrada}">Volver al registro de entrada</a>
+        </form>
+    </section>
+</main>
+</body>
+</html>

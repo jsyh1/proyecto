@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Administrar centros comerciales</title>
+    <link rel="stylesheet" th:href="@{/css/app.css}">
+</head>
+<body>
+<header class="app-header">
+    <div class="header-inner">
+        <a class="brand" th:href="@{/sesiones/entrada}">Parqueadero</a>
+        <nav class="header-nav" aria-label="Navegación">
+        <span>Administración</span>
+        <a th:href="@{/sesiones/entrada}">Volver al registro de entradas</a>
+        </nav>
+    </div>
+</header>
+<main class="page-shell">
+    <div class="page-heading">
+        <p class="eyebrow">Configuración</p>
+        <h1>Centros comerciales</h1>
+        <p>Registra un centro y su tarifa horaria activa para habilitarlo en el formulario de entradas.</p>
+    </div>
+
+    <p class="notice notice--success" role="status" th:if="${mensaje}" th:text="${mensaje}"></p>
+    <p class="notice notice--error" role="alert" th:if="${error}" th:text="${error}"></p>
+
+    <div class="content-grid">
+    <section class="panel" aria-labelledby="nuevo-centro-titulo">
+        <h2 id="nuevo-centro-titulo">Agregar centro comercial</h2>
+        <p class="panel-intro">Cada centro se activa con la tarifa indicada.</p>
+        <form th:action="@{/administracion/centros-comerciales}" method="post">
+            <div class="form-grid">
+                <div class="field">
+                    <label for="nombre">Nombre</label>
+                    <input id="nombre" name="nombre" maxlength="80" required th:value="${nombre}" autocomplete="organization">
+                </div>
+                <div class="field">
+                    <label for="direccion">Dirección</label>
+                    <input id="direccion" name="direccion" maxlength="120" th:value="${direccion}" autocomplete="street-address">
+                </div>
+                <div class="field">
+                    <label for="valorHora">Tarifa por hora (COP)</label>
+                    <input id="valorHora" name="valorHora" type="number" min="0.01" max="99999999.99" step="0.01" required th:value="${valorHora}">
+                </div>
+            </div>
+            <div class="button-row button-row--spaced">
+                <button class="button" type="submit">Guardar centro comercial</button>
+            </div>
+        </form>
+    </section>
+
+    <section class="panel" aria-labelledby="centros-registrados-titulo">
+        <h2 id="centros-registrados-titulo">Centros registrados</h2>
+        <p class="panel-intro">Estos centros aparecen en el formulario de entrada cuando están activos.</p>
+        <div class="table-wrap">
+            <table>
+                <thead>
+                <tr><th>Nombre</th><th>Dirección</th><th>Estado</th></tr>
+                </thead>
+                <tbody>
+                <tr th:each="centro : ${centros}">
+                    <td th:text="${centro.nombre}"></td>
+                    <td th:text="${centro.direccion ?: '—'}"></td>
+                    <td><span class="status-pill" th:text="${centro.estado}"></span></td>
+                </tr>
+                <tr th:if="${#lists.isEmpty(centros)}">
+                    <td colspan="3" class="hint">Todavía no hay centros comerciales registrados.</td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </section>
+    </div>
+</main>
+</body>
+</html>
