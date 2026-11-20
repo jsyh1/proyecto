@@ -3,6 +3,7 @@ package co.edu.poli.parqueadero.dao;
 import java.util.List;
 
 import co.edu.poli.parqueadero.modelo.SesionParqueadero;
+import jakarta.persistence.LockModeType;
 import org.springframework.stereotype.Repository;
 
 @Repository
@@ -30,6 +31,23 @@ public class SesionDAOImplementado extends DAOJpa<SesionParqueadero> implements 
                 .setParameter("placa", placa)
                 .setParameter("estado", SesionParqueadero.ESTADO_ABIERTA)
                 .getResultList());
+    }
+
+    @Override
+    public SesionParqueadero buscarAbiertaPorPlacaBloqueada(String placa) {
+        return primero(em.createQuery(
+                "select s from SesionParqueadero s where s.vehiculo.placa = :placa and s.estado = :estado",
+                SesionParqueadero.class)
+                .setParameter("placa", placa)
+                .setParameter("estado", SesionParqueadero.ESTADO_ABIERTA)
+                .setLockMode(LockModeType.PESSIMISTIC_WRITE)
+                .getResultList());
+    }
+
+    @Override
+    public SesionParqueadero buscarPorIdBloqueado(Integer idSesion) {
+        return idSesion == null ? null : em.find(
+                SesionParqueadero.class, idSesion, LockModeType.PESSIMISTIC_WRITE);
     }
 
     @Override

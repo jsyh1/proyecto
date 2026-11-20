@@ -8,10 +8,13 @@ public record ResumenSesion(
         String placa,
         String centro,
         String fechaEntrada,
+        String fechaSalida,
         String estado,
         long minutosTranscurridos,
         String tiempoTranscurrido,
         BigDecimal valorHora,
+        BigDecimal horasFacturables,
         BigDecimal horasGratuitas,
+        int beneficiosQrAplicados,
         BigDecimal costoActual) {
 }

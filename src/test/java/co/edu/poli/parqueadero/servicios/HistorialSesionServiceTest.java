@@ -61,6 +61,7 @@ class HistorialSesionServiceTest {
         assertEquals("Centro Demo", detalle.centro());
         assertEquals(new BigDecimal("5000.00"), detalle.valorHora());
         assertEquals(new BigDecimal("2.50"), detalle.horasFacturables());
+        assertEquals(0, detalle.beneficiosQrAplicados());
         assertEquals(new BigDecimal("12500.00"), detalle.montoPagado());
     }
 
@@ -104,6 +105,7 @@ class HistorialSesionServiceTest {
         sesion.setEstado("CERRADA");
         sesion.setHorasFacturables(new BigDecimal("2.50"));
         sesion.setHorasGratuitas(BigDecimal.ZERO);
+        sesion.setBeneficiosQrAplicados(0);
         sesion.setMontoTotal(new BigDecimal("12500.00"));
         return sesion;
     }

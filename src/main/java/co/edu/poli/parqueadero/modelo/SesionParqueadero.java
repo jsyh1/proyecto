@@ -17,6 +17,7 @@ import java.time.LocalDateTime;
 public class SesionParqueadero {
 
     public static final String ESTADO_ABIERTA = "ABIERTA";
+    public static final String ESTADO_CERRADA = "CERRADA";
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -44,8 +45,11 @@ public class SesionParqueadero {
     @Column(name = "horas_facturables", precision = 5, scale = 2)
     private BigDecimal horasFacturables;
 
-    @Column(name = "horas_gratuitas", precision = 5, scale = 2)
+    @Column(name = "horas_gratuitas", precision = 8, scale = 6)
     private BigDecimal horasGratuitas;
+
+    @Column(name = "beneficios_qr", nullable = false)
+    private int beneficiosQrAplicados;
 
     @Column(name = "monto_total", precision = 10, scale = 2)
     private BigDecimal montoTotal;
@@ -68,6 +72,8 @@ public class SesionParqueadero {
     public void setHorasFacturables(BigDecimal horasFacturables) { this.horasFacturables = horasFacturables; }
     public BigDecimal getHorasGratuitas() { return horasGratuitas; }
     public void setHorasGratuitas(BigDecimal horasGratuitas) { this.horasGratuitas = horasGratuitas; }
+    public int getBeneficiosQrAplicados() { return beneficiosQrAplicados; }
+    public void setBeneficiosQrAplicados(int beneficiosQrAplicados) { this.beneficiosQrAplicados = beneficiosQrAplicados; }
     public BigDecimal getMontoTotal() { return montoTotal; }
     public void setMontoTotal(BigDecimal montoTotal) { this.montoTotal = montoTotal; }
     public String getEstado() { return estado; }

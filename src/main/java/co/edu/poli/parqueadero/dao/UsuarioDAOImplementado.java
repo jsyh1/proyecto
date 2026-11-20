@@ -9,4 +9,13 @@ public class UsuarioDAOImplementado extends DAOJpa<Usuario> implements UsuarioDA
     public UsuarioDAOImplementado() {
         super(Usuario.class);
     }
+
+    @Override
+    public Usuario buscarPorCorreo(String correo) {
+        return primero(em.createQuery(
+                        "select u from Usuario u where lower(u.correo) = :correo",
+                        Usuario.class)
+                .setParameter("correo", correo)
+                .getResultList());
+    }
 }

@@ -1,5 +1,6 @@
 package co.edu.poli.parqueadero.servicios;
 
+import java.util.List;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -45,5 +46,18 @@ public class VehiculoService {
         vehiculo.setColor(color);
         vehiculoDAO.crear(vehiculo);
         return vehiculo;
+    }
+
+    @Transactional(readOnly = true)
+    public List<Vehiculo> listarPorUsuario(Integer idUsuario) {
+        if (idUsuario == null || idUsuario <= 0) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "El id del usuario debe ser positivo.");
+        }
+
+        if (usuarioDAO.buscarPorId(idUsuario) == null) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "El usuario seleccionado no existe.");
+        }
+
+        return vehiculoDAO.buscarPorUsuario(idUsuario);
     }
 }

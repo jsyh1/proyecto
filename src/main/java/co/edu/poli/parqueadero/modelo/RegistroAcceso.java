@@ -16,6 +16,7 @@ import java.time.LocalDateTime;
 public class RegistroAcceso {
 
     public static final String EVENTO_ENTRADA = "ENTRADA";
+    public static final String EVENTO_SALIDA = "SALIDA";
     public static final String RESULTADO_RECONOCIDO = "RECONOCIDO";
     public static final String RESULTADO_FALLIDO = "FALLIDO";
 
