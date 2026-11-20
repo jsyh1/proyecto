@@ -15,6 +15,7 @@ public record DetalleHistorialSesionResponse(
         BigDecimal valorHora,
         BigDecimal horasFacturables,
         BigDecimal horasGratuitas,
+        int beneficiosQrAplicados,
         BigDecimal montoPagado) {
 
     static DetalleHistorialSesionResponse desde(SesionParqueadero sesion) {
@@ -28,6 +29,7 @@ public record DetalleHistorialSesionResponse(
                 sesion.getTarifa().getValorHora(),
                 sesion.getHorasFacturables(),
                 sesion.getHorasGratuitas(),
+                sesion.getBeneficiosQrAplicados(),
                 sesion.getMontoTotal());
     }
 }

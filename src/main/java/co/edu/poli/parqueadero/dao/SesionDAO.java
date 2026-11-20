@@ -12,6 +12,12 @@ public interface SesionDAO extends DAO<SesionParqueadero> {
     /** Sesión abierta asociada a una placa ya normalizada; null si no existe. */
     SesionParqueadero buscarAbiertaPorPlaca(String placa);
 
+    /** Sesión abierta de una placa con bloqueo exclusivo para operaciones concurrentes. */
+    SesionParqueadero buscarAbiertaPorPlacaBloqueada(String placa);
+
+    /** Busca y bloquea una sesión para serializar sus cambios. */
+    SesionParqueadero buscarPorIdBloqueado(Integer idSesion);
+
     /** Historial de sesiones de un usuario, de la más reciente a la más antigua. */
     List<SesionParqueadero> listarPorUsuario(Integer idUsuario);
 

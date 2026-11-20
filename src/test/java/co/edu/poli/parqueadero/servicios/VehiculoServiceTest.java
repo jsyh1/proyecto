@@ -5,8 +5,10 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
+import java.util.List;
 import co.edu.poli.parqueadero.dao.UsuarioDAO;
 import co.edu.poli.parqueadero.dao.VehiculoDAO;
 import co.edu.poli.parqueadero.modelo.Usuario;
@@ -74,5 +76,40 @@ class VehiculoServiceTest {
         assertEquals(HttpStatus.NOT_FOUND, excepcion.getStatusCode());
         assertTrue(excepcion.getReason().contains("usuario"));
         verify(vehiculoDAO, never()).crear(org.mockito.ArgumentMatchers.any());
+    }
+
+    @Test
+    void listaVehiculosDelUsuarioSolicitado() {
+        Usuario usuario = new Usuario();
+        Vehiculo vehiculo = new Vehiculo();
+        vehiculo.setUsuario(usuario);
+        vehiculo.setPlaca("ABC123");
+        when(usuarioDAO.buscarPorId(8)).thenReturn(usuario);
+        when(vehiculoDAO.buscarPorUsuario(8)).thenReturn(List.of(vehiculo));
+
+        List<Vehiculo> encontrados = servicio.listarPorUsuario(8);
+
+        assertEquals(List.of(vehiculo), encontrados);
+        verify(vehiculoDAO).buscarPorUsuario(8);
+    }
+
+    @Test
+    void rechazaConsultaConUsuarioInexistente() {
+        when(usuarioDAO.buscarPorId(8)).thenReturn(null);
+
+        ResponseStatusException excepcion = assertThrows(ResponseStatusException.class,
+                () -> servicio.listarPorUsuario(8));
+
+        assertEquals(HttpStatus.NOT_FOUND, excepcion.getStatusCode());
+        verify(vehiculoDAO, never()).buscarPorUsuario(8);
+    }
+
+    @Test
+    void rechazaConsultaConIdentificadorNoPositivo() {
+        ResponseStatusException excepcion = assertThrows(ResponseStatusException.class,
+                () -> servicio.listarPorUsuario(0));
+
+        assertEquals(HttpStatus.BAD_REQUEST, excepcion.getStatusCode());
+        verifyNoInteractions(usuarioDAO, vehiculoDAO);
     }
 }

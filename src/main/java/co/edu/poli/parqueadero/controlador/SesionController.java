@@ -42,6 +42,18 @@ public class SesionController {
         }
     }
 
+    @PostMapping("/salida")
+    public String registrarSalida(@RequestParam String placa, RedirectAttributes atributos) {
+        try {
+            ResumenSesion resumen = servicio.registrarSalidaPorPlaca(placa);
+            atributos.addFlashAttribute("mensajeSalida", "La salida se registró correctamente.");
+            return "redirect:/sesiones/" + resumen.id();
+        } catch (ReglaNegocioException e) {
+            atributos.addFlashAttribute("errorConsulta", e.getMessage());
+            return "redirect:/sesiones/entrada";
+        }
+    }
+
     @GetMapping("/consulta")
     public String consultarPorPlaca(@RequestParam String placa, RedirectAttributes atributos) {
         try {
